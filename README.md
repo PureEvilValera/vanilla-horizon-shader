@@ -1,10 +1,45 @@
 # Vanilla Horizon
 
-A shader pack for [Horizon](https://playhorizon.dev) — the Rust rewrite of Minecraft: Java Edition.
-Vanilla's own look is kept as the base: the sun, the moon and the shadows are added on top of
-vanilla's light, and the water, the rain and the glow of the blocks are the pack's own.
+**Vanilla Minecraft's light, plus real sunrises and sunsets, water and rain.**
 
-Built against **shader API 0.1** (manifest `schema = 1`). Version **2.10.2**.
+A shader pack for [Horizon](https://playhorizon.dev) — the Rust rewrite of Minecraft: Java Edition.
+Vanilla's own light is the base: the sun and the moon cast shadows on top of it, the blocks the low
+sun reaches turn warm, rays spill across the horizon, and the air near the ground takes the hour's
+colour. The water, the rain and the glowing blocks are the pack's own.
+
+<p align="center">
+  <img src="screenshots/sunset-orange-light-on-red-sand.png" width="49%">
+  <img src="screenshots/sunrise-warm-light-on-tall-grass.png" width="49%">
+  <br><sub><b>Magic dusks and dawns</b></sub>
+</p>
+
+<p align="center">
+  <img src="screenshots/water-mirror-at-sunset.png" width="49%">
+  <img src="screenshots/noon-water-transparency-and-waves.png" width="49%">
+  <br><sub><b>Adjusting water transparency, waves, and reflections</b></sub>
+</p>
+
+<p align="center">
+  <img src="screenshots/storm-rain-and-dark-wet-ground.png" width="49%">
+  <img src="screenshots/rain-over-river-and-meadow.png" width="49%">
+  <br><sub><b>Storm, strong wind</b> · <b>Rain, light breeze</b></sub>
+</p>
+
+<p align="center">
+  <img src="screenshots/night-moon-over-torch-lit-mesa.png" width="49%">
+  <img src="screenshots/moonlight-on-mesa-butte.png" width="49%">
+  <br><sub><b>Spellbinding moon light</b></sub>
+</p>
+
+<p align="center">
+  <img src="screenshots/lantern-glow-in-dark-meadow.png" width="70%">
+  <br><sub><b>The warm light of a lantern</b></sub>
+</p>
+
+<p align="center">
+  <img src="screenshots/shader-settings-menu-over-night-scene.png" width="70%">
+  <br><sub><b>Detailed settings</b></sub>
+</p>
 
 ## Install
 
@@ -26,6 +61,7 @@ defaults.
 | `dist/vanilla-horizon-shader-2.10.2.zip` | **the file to send someone**: the pack as a folder to unzip into `shaderpacks/`, with `УСТАНОВКА.txt` beside it |
 | `tools/check.py` | fast pre-flight: manifest, options ↔ overrides, `[[pages]]` reachability, pack-root files |
 | `tools/pack.py` | builds `dist/` with `horizon-shader pack` when it is installed |
+| `screenshots/` | the images above, downscaled to 1440 px wide so the repository stays light |
 | `AGENTS.md` | notes for whoever (or whatever) edits the pack next: layout, conventions, design decisions |
 
 The pack root may hold only what the format allows (`horizon-shaders.toml`, `.wgsl`, `[[textures]]`
