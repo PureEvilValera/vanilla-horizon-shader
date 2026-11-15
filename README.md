@@ -27,7 +27,7 @@ colour. The water, the rain and the glowing blocks are the pack's own.
 
 <p align="center">
   <img src="screenshots/night-moon-over-torch-lit-mesa.png" width="49%">
-  <img src="screenshots/moonlight-on-mesa-butte.png" width="49%">
+  <img src="screenshots/moonlit-forest-grass-at-night.png" width="49%">
   <br><sub><b>Spellbinding moon light</b></sub>
 </p>
 
