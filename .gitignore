@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+/pack/.DS_Store
+/.idea/
+/.vscode/

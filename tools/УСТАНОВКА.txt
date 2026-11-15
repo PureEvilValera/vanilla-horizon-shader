@@ -1,0 +1,22 @@
+Vanilla Horizon 2.10.2 — шейдер для Horizon (Rust-версия Minecraft: Java Edition)
+https://playhorizon.dev    shader API 0.1
+
+УСТАНОВКА
+1. Horizon -> Options -> Horizon Settings -> Shader Packs -> Open Pack Folder
+   (откроется ~/.local/share/horizon/shaderpacks)
+2. Распакуй сюда папку vanilla_horizon целиком, вместе с horizon-shaders.toml внутри.
+   Второй вариант: положи рядом файл vanilla_horizon-2.10.2.hshader, не распаковывая.
+3. Вернись в игру, закрой и снова открой страницу Shader Packs.
+4. Выбери Vanilla Horizon.
+
+НЕЛЬЗЯ
+- переименовывать файлы внутри папки;
+- класть в папку папки что-то ещё (скриншоты, заметки) — Horizon откажет всему паку;
+- держать одновременно папку и .hshader с одним id — они дублируются в списке.
+
+НАСТРОЙКИ
+Разложены по страницам: Sky and clouds, Dawn, Dusk, Moon, Light and shadows,
+Block glow, Water, Rain, Nature. Кнопка "Reset all options" вверху страницы пака
+возвращает все ползунки к значениям автора.
+
+Если пак отказался загружаться — в чате игры будет строка с ошибкой и номером строки.
