@@ -55,11 +55,11 @@ def version() -> str:
 def fetch_source() -> None:
     """Unpack Horizon into .ci/horizon, replacing whatever sits there."""
     url = f"https://codeload.github.com/{HORIZON_REPO}/tar.gz/{HORIZON_SHA}"
-    print(f"downloading {url}", flush=True)
+    print(f"downloading {url}", file=sys.stderr, flush=True)
     request = urllib.request.Request(url, headers={"User-Agent": "vanilla-horizon-ci"})
     with urllib.request.urlopen(request, timeout=600) as response:
         payload = response.read()
-    print(f"{len(payload) // 1024} KiB", flush=True)
+    print(f"{len(payload) // 1024} KiB", file=sys.stderr, flush=True)
 
     with tempfile.TemporaryDirectory(dir=CACHE) as scratch:
         scratch = Path(scratch)
@@ -80,7 +80,7 @@ def build_tool() -> None:
     command = ["cargo", "build", "-p", HORIZON_CRATE, "--bin", HORIZON_BIN, "--manifest-path", str(SOURCE / "Cargo.toml")]
     if (SOURCE / "Cargo.lock").exists():
         command.append("--locked")
-    print(" ".join(command), flush=True)
+    print(" ".join(command), file=sys.stderr, flush=True)
     subprocess.run(command, check=True, env={**os.environ, "CARGO_TARGET_DIR": str(TARGET)})
     built = TARGET / "debug" / HORIZON_BIN
     if not built.exists():
@@ -102,10 +102,12 @@ def ensure_tool() -> str:
 
 
 def check() -> None:
-    subprocess.run([ensure_tool(), "check", str(PACK)], check=True)
+    # The tool's report goes to stderr, stdout stays clean for `package`'s JSON.
+    subprocess.run([ensure_tool(), "check", str(PACK)], check=True, stdout=sys.stderr)
 
 
 def package() -> dict[str, str]:
+    """stdout: one JSON object. Everything else — the check's report, the packer's lines — to stderr."""
     check()
     result = subprocess.run(
         [sys.executable, str(REPO / "tools" / "pack.py"), "--json", "--no-link"],
@@ -113,8 +115,10 @@ def package() -> dict[str, str]:
         text=True,
         check=True,
     )
-    print(result.stdout.strip())
-    return json.loads(result.stdout.strip().splitlines()[-1])
+    sys.stderr.write(result.stdout)
+    data = json.loads(result.stdout.strip().splitlines()[-1])
+    print(json.dumps(data))
+    return data
 
 
 def main() -> int:
