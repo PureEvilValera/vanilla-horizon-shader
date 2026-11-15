@@ -39,8 +39,10 @@ Release: bump `version` in `pack/horizon-shaders.toml` (and nothing else version
 verifies the tag against the manifest, checks, packages, and attaches
 `dist/vanilla_horizon-<version>.hshader` and `dist/vanilla-horizon-shader-<version>.zip`.
 
-`HORIZON_SHA` in `tools/ci.py` pins the Horizon the tool is built from. Bump it only together with
-the manifest's `api` line — the tool is the authority for that line.
+`HORIZON_SHA` in `tools/ci.py` pins the Horizon the tool is built from. It must serve this pack's
+`api` line: main retired 0.1 on 2026-11-15 (`f82620a`), so the pin sits on `e6212cb`, the last commit
+that serves it. Bump it only together with the manifest's `api` — migrating this pack to 0.2 (linear
+light, `[tonemap]`, the game drawing it only with `HORIZON_HDR_FRAME=float`) is a separate job.
 
 ## Design
 

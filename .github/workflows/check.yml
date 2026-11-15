@@ -22,10 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      # `tools/ci.py` unpacks Horizon under .ci/ and builds its shader tool there.
+      # `tools/ci.py` unpacks Horizon into .ci/horizon and builds into .ci/target (cached).
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: .ci/horizon
+          workspaces: .ci
+          # .ci/target is the build; the rest of .ci is fetched source and the built tool.
+          cache-directories: .ci/bin
       - name: Fast pre-flight (manifest, options, pages, pack-root files)
         run: python3 tools/check.py
       - name: Horizon's check (naga, SPIR-V/Metal/HLSL, every option at min and max)

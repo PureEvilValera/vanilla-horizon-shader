@@ -27,7 +27,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: .ci/horizon
+          workspaces: .ci
+          # .ci/target is the build; the rest of .ci is fetched source and the built tool.
+          cache-directories: .ci/bin
       - name: The tag matches the pack's version
         env:
           TAG: ${{ inputs.tag || github.ref_name }}
