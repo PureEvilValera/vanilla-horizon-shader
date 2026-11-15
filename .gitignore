@@ -3,3 +3,4 @@ __pycache__/
 /pack/.DS_Store
 /.idea/
 /.vscode/
+.ci/

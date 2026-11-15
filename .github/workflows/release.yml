@@ -1,0 +1,64 @@
+# A release from a tag: Horizon's check, both packaged files, and the notes from docs/.
+# Tag v<version> must match `version` in pack/horizon-shaders.toml.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (default: the pushed tag)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: .ci/horizon
+      - name: The tag matches the pack's version
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          version=$(python3 tools/ci.py version)
+          [ "v$version" = "$TAG" ] || { echo "tag $TAG is not v$version"; exit 1; }
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+      - name: Package
+        run: |
+          python3 tools/ci.py package | tee package.json
+          python3 - >> "$GITHUB_ENV" <<'PY'
+          import json
+          data = json.load(open("package.json"))
+          print("FILE=" + data["file"])
+          print("SHA256=" + data["sha256"])
+          print("ZIP=" + data["zip"])
+          print("ZIP_SHA256=" + data["zip_sha256"])
+          PY
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Vanilla Horizon $VERSION"
+          notes="docs/release-notes-$VERSION.md"
+          if [ -f "$notes" ]; then
+            gh release create "$TAG" "$FILE" "$ZIP" --title "$title" --verify-tag --notes-file "$notes" \
+              || gh release upload "$TAG" "$FILE" "$ZIP" --clobber
+          else
+            gh release create "$TAG" "$FILE" "$ZIP" --title "$title" --verify-tag --generate-notes \
+              || gh release upload "$TAG" "$FILE" "$ZIP" --clobber
+          fi
+          echo "hshader sha256: $SHA256"
+          echo "zip     sha256: $ZIP_SHA256"

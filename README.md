@@ -62,11 +62,35 @@ defaults.
 | `tools/check.py` | fast pre-flight: manifest, options ↔ overrides, `[[pages]]` reachability, pack-root files |
 | `tools/pack.py` | builds `dist/` with `horizon-shader pack` when it is installed |
 | `screenshots/` | the images above, downscaled to 1440 px wide so the repository stays light |
+| `docs/release-notes-*.md` | the body of each GitHub release |
 | `AGENTS.md` | notes for whoever (or whatever) edits the pack next: layout, conventions, design decisions |
 
 The pack root may hold only what the format allows (`horizon-shaders.toml`, `.wgsl`, `[[textures]]`
 PNGs, `README.md`, `LICENSE*`, `icon.png`). Anything else in `pack/` makes Horizon refuse the whole
 pack, which is why the tools and the docs live beside it, not inside.
+
+## Releases, built by CI
+
+Two workflows, no local tooling needed:
+
+- `.github/workflows/check.yml` — on every push and pull request: `tools/check.py`, then Horizon's
+  own check and package. It builds `horizon-shader` from the Horizon commit pinned in `tools/ci.py`
+  (cached between runs) and uploads the packaged files as a build artifact.
+- `.github/workflows/release.yml` — on a `v*` tag: verifies the tag against `version` in the
+  manifest, checks, packages, and attaches both files to the release, with the notes taken from
+  `docs/release-notes-<version>.md`.
+
+So a release is:
+
+```sh
+# bump "version" in pack/horizon-shaders.toml, add docs/release-notes-<version>.md
+git add -A && git commit -m "Vanilla Horizon <version>"
+git tag -a v<version> -m "Vanilla Horizon <version>"
+git push origin main v<version>
+```
+
+Both files come from the same packer the registry uses, so their SHA-256 match a local
+`python3 tools/pack.py`.
 
 ## Passing it to someone else
 
