@@ -17,7 +17,7 @@ fn weather(input: WeatherInput) -> vec4<f32> {
     let gain = clamp(rain_brightness, 0.0, 2.0);
     let t = clamp(rain_tint, -1.0, 1.0);
     // The three anchors.
-    let neutral = vec3<f32>(max(light, 0.05) * gain);
+    let neutral = vec3<f32>(pow(clamp(max(light, 0.05), 0.0, 1.0), 2.2) * gain);
     let cool = neutral * vec3<f32>(0.72, 1.05, 1.45);
     let vanilla = input.color.rgb * gain;
 

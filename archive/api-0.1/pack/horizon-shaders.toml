@@ -1,0 +1,773 @@
+schema = 1
+id = "vanilla_horizon"
+name = "Vanilla Horizon"
+version = "2.10.2"
+api = "0.1"
+description = "Vanilla's own light, kept whole: the sun and the moon add to it and shadows take back only a bounded part of the sky's light, so caves, torches and night stay vanilla. Water with waves, a mirror and its own transparency, plus sun rays at dawn and dusk."
+authors = ["pev"]
+license = "MIT"
+shared = ["common.wgsl"]
+
+[sky]
+file = "sky.wgsl"
+name = "Sky glow"
+# The sun (vanilla's square one), the moon with its phases, the stars and the clouds stay the
+# engine's own; this stage only adds the glow around the sun.
+sun = true
+clouds = true
+stars = true
+
+[material]
+file = "material.wgsl"
+name = "Terrain light and water"
+# The pack fogs its surfaces itself: vanilla's density and distances, its colour warmed at dusk.
+fog = false
+
+[weather]
+file = "weather.wgsl"
+name = "Rain and snow"
+
+[vertex]
+file = "vertex.wgsl"
+name = "Waving plants"
+
+# The shadow pass draws the terrain again in the light's square, so its cost grows with the
+# distance squared: 2048/128 is the default, and the options below are the way to pay less.
+[shadow]
+option = "shadows"
+resolution_option = "shadow_resolution"
+distance_option = "shadow_distance"
+resolution = 2048
+distance = 64.0
+solid_materials = [1]
+
+[reflection]
+option = "water_reflections"
+
+[[post]]
+file = "post/rays.wgsl"
+name = "Sun rays"
+output = "vh_rays"
+scale = 0.25
+
+[[post]]
+file = "post/glow_prefilter.wgsl"
+name = "Glow prefilter"
+output = "vh_glow"
+scale = 0.25
+
+[[post]]
+file = "post/glow_blur.wgsl"
+name = "Glow blur"
+output = "vh_glow_b"
+scale = 0.25
+
+[[post]]
+file = "post/frame.wgsl"
+name = "Frame and rays"
+
+[budget]
+gpu_ms = 2.0
+
+[[materials]]
+id = 1
+sprites = ["block/*_leaves", "block/vine"]
+
+[[materials]]
+id = 2
+sprites = [
+    "block/short_grass",
+    "block/grass",
+    "block/fern",
+    "block/dandelion",
+    "block/poppy",
+    "block/_tulip",
+    "block/oxeye_daisy",
+    "block/cornflower",
+    "block/allium",
+    "block/azure_bluet",
+    "block/blue_orchid",
+    "block/lily_of_the_valley",
+    "block/dead_bush",
+    "block/_sapling",
+    "block/wheat_stage*",
+    "block/carrots_stage*",
+    "block/potatoes_stage*",
+    "block/beetroots_stage*",
+]
+
+[[materials]]
+id = 3
+blocks = [
+    "torch", "wall_torch", "soul_torch", "soul_wall_torch", "redstone_torch", "redstone_wall_torch",
+    "lantern", "soul_lantern", "campfire", "soul_campfire", "jack_o_lantern", "fire", "soul_fire",
+    "candle", "*_candle",
+]
+
+[[materials]]
+id = 4
+blocks = ["lava", "magma_block"]
+
+[[materials]]
+id = 5
+blocks = [
+    "glowstone", "shroomlight", "ochre_froglight", "pearlescent_froglight", "verdant_froglight",
+    "sea_lantern", "end_rod", "beacon", "conduit",
+]
+
+[[materials]]
+id = 6
+blocks = [
+    "amethyst_cluster", "*_amethyst_bud", "nether_portal", "end_portal", "end_gateway",
+    "crying_obsidian", "respawn_anchor",
+]
+
+# --- The block light these groups cast, and its colour ---
+
+[[lights]]
+color = [1.0, 0.62, 0.3]
+blocks = ["torch", "wall_torch", "lantern", "campfire", "jack_o_lantern", "fire", "candle", "*_candle"]
+
+[[lights]]
+color = [0.35, 0.75, 1.0]
+blocks = ["soul_torch", "soul_wall_torch", "soul_lantern", "soul_campfire", "soul_fire"]
+
+[[lights]]
+color = [1.0, 0.2, 0.12]
+blocks = ["redstone_torch", "redstone_wall_torch", "redstone_lamp"]
+
+[[lights]]
+color = [1.0, 0.85, 0.55]
+blocks = ["glowstone", "shroomlight", "ochre_froglight", "pearlescent_froglight", "verdant_froglight", "end_rod"]
+
+[[lights]]
+color = [0.7, 0.95, 1.0]
+blocks = ["sea_lantern", "beacon", "conduit"]
+
+[[lights]]
+color = [0.78, 0.48, 1.0]
+blocks = ["amethyst_cluster", "*_amethyst_bud", "crying_obsidian", "nether_portal", "respawn_anchor"]
+
+# --- The options pages -------------------------------------------------------------
+
+[[pages]]
+id = "main"
+name = "Vanilla Horizon"
+items = ["page:sky", "page:dawn", "page:dusk", "page:moon", "page:light", "page:glow", "page:water", "page:rain", "page:nature", ""]
+
+[[pages]]
+id = "sky"
+name = "Sky and clouds"
+description = "How thick the daytime air is, and the glow around the sun."
+items = ["day_fog", "skyline", "bloom", ""]
+
+[[pages]]
+id = "dawn"
+name = "Dawn"
+description = "How the sunrise looks: its halo, the haze it leaves, its warmth and its rays."
+items = [
+    "dawn_warmth",
+    "dawn_orange",
+    "dawn_light",
+    "dawn_glow",
+    "dawn_glow_size",
+    "dawn_haze",
+    "dawn_rays",
+    "dawn_rays_color",
+    "",
+]
+
+[[pages]]
+id = "dusk"
+name = "Dusk"
+description = "The same for the sunset, with its own numbers."
+items = [
+    "dusk_warmth",
+    "dusk_orange",
+    "dusk_light",
+    "dusk_glow",
+    "dusk_glow_size",
+    "dusk_haze",
+    "dusk_rays",
+    "dusk_rays_color",
+    "",
+]
+
+[[pages]]
+id = "moon"
+name = "Moon"
+description = "The moon's own light: never the sunset's orange."
+items = ["moon_strength", "moon_tint", "moon_glow", ""]
+
+[[pages]]
+id = "light"
+name = "Light and shadows"
+description = "Shadows and how much the sun adds to vanilla's own light."
+items = [
+    "shadows",
+    "shadow_softness",
+    "shadow_resolution",
+    "shadow_distance",
+    "shadow_strength",
+    "sun_strength",
+    "",
+]
+
+[[pages]]
+id = "glow"
+name = "Block glow"
+description = "How bright the light-emitting blocks shine and how warm that is, plus the colour of the light they cast on what is around them."
+items = [
+    "torch_glow",
+    "torch_glow_tint",
+    "lava_glow",
+    "lava_glow_tint",
+    "glowstone_glow",
+    "glowstone_glow_tint",
+    "crystal_glow",
+    "crystal_glow_tint",
+    "block_light_warmth",
+    "",
+]
+
+[[pages]]
+id = "water"
+name = "Water"
+description = "The mirror, the ripples, the glint and how far you see into the water."
+items = ["water_reflections", "reflection_strength", "water_transparency", "water_waves", "sun_glint", ""]
+
+[[pages]]
+id = "rain"
+name = "Rain"
+description = "The rain and the snow themselves, and what the rain leaves on the ground."
+items = ["rain_tint", "rain_brightness", "rain_rings_ground", "rain_rings_water", "ring_density", "wet_ground", ""]
+
+[[pages]]
+id = "nature"
+name = "Nature"
+description = "The plants in the wind: how hard it blows in a calm hour, in the rain and in a storm."
+items = ["waving_plants", "wind_calm", "wind_rain", "wind_thunder", ""]
+
+# --- Sky glow ---------------------------------------------------------------------
+
+[[options]]
+id = "day_fog"
+name = "Day fog"
+description = "How thick the air is by day, against vanilla's fog: 1 is exactly vanilla, 0 none. The dawn and the dusk keep the pack's own thickness."
+type = "float"
+default = 0.35
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "skyline"
+name = "Skyline haze"
+description = "Blends the far edge of the loaded terrain into the sky above it, so the end of the chunks is not a hard band; nearby trees and hills are left alone. 0 turns it off."
+type = "float"
+default = 0.5
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "bloom"
+name = "Glow"
+description = "A soft glow around what is brighter than white: the sun, its halo and bright clouds. 0 turns it off and saves two quarter-size passes."
+type = "float"
+default = 0.0
+min = 0.0
+max = 1.0
+step = 0.05
+
+# --- Dawn -------------------------------------------------------------------------
+
+[[options]]
+id = "dawn_warmth"
+name = "Dawn warmth"
+description = "How orange the dawn's own light is at the horizon: 0 a neutral white, 1 a deep orange."
+type = "float"
+default = 0.25
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "dawn_orange"
+name = "Dawn orange"
+description = "How orange everything the sky lights turns at dawn. 0 leaves it untouched, 2 is a deep orange."
+type = "float"
+default = 0.75
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "dawn_light"
+name = "Dawn light"
+description = "How much more light a low sun gives at dawn than its height alone would."
+type = "float"
+default = 0.5
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "dawn_glow"
+name = "Dawn glow"
+description = "The halo and the wash of light around the sun, and the band along the horizon on its side."
+type = "float"
+default = 0.7
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "dawn_glow_size"
+name = "Dawn glow size"
+description = "How far the glow reaches from the sun: 0.2 a tight halo, 4 a wash over half the sky."
+type = "float"
+default = 0.3
+min = 0.2
+max = 4.0
+step = 0.05
+
+[[options]]
+id = "dawn_haze"
+name = "Dawn haze"
+description = "How much of the low sun's colour the far distance takes."
+type = "float"
+default = 0.0
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "dawn_rays"
+name = "Dawn rays"
+description = "Light spilling from the sun at sunrise."
+type = "float"
+default = 0.1
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "dawn_rays_color"
+name = "Dawn rays colour"
+description = "Extra saturation of the rays: above 0 redder, below it yellower."
+type = "float"
+default = -0.25
+min = -0.25
+max = 0.5
+step = 0.05
+
+# --- Dusk -------------------------------------------------------------------------
+
+[[options]]
+id = "dusk_warmth"
+name = "Dusk warmth"
+description = "How orange the sunset's own light is at the horizon: 0 a neutral white, 1 a deep orange."
+type = "float"
+default = 0.5
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "dusk_orange"
+name = "Dusk orange"
+description = "How orange everything the sky lights turns at sunset. 0 leaves it untouched, 2 is a deep orange."
+type = "float"
+default = 2.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "dusk_light"
+name = "Dusk light"
+description = "How much more light a low sun gives at sunset than its height alone would."
+type = "float"
+default = 0.3
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "dusk_glow"
+name = "Dusk glow"
+description = "The halo and the wash of light around the sun, and the band along the horizon on its side."
+type = "float"
+default = 0.75
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "dusk_glow_size"
+name = "Dusk glow size"
+description = "How far the glow reaches from the sun: 0.2 a tight halo, 4 a wash over half the sky."
+type = "float"
+default = 0.2
+min = 0.2
+max = 4.0
+step = 0.05
+
+[[options]]
+id = "dusk_haze"
+name = "Dusk haze"
+description = "How much of the low sun's colour the far distance takes."
+type = "float"
+default = 0.2
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "dusk_rays"
+name = "Dusk rays"
+description = "Light spilling from the sun at sunset."
+type = "float"
+default = 0.3
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "dusk_rays_color"
+name = "Dusk rays colour"
+description = "Extra saturation of the rays: above 0 redder, below it yellower."
+type = "float"
+default = 0.5
+min = -0.25
+max = 0.5
+step = 0.05
+
+# --- Moon -------------------------------------------------------------------------
+
+[[options]]
+id = "moon_strength"
+name = "Moonlight"
+description = "The moon's own light and the long shadows it casts, the whole night through. 0 keeps vanilla's night exactly."
+type = "float"
+default = 2.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "moon_tint"
+name = "Moon colour"
+description = "0 is the pack's cool blue moonlight, 1 a warm white."
+type = "float"
+default = 0.0
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "moon_glow"
+name = "Moon glow"
+description = "A cool halo around the moon at night."
+type = "float"
+default = 0.2
+min = 0.0
+max = 2.0
+step = 0.05
+
+# --- Light and shadows ------------------------------------------------------------
+
+[[options]]
+id = "shadows"
+name = "Shadows"
+description = "Sun and moon shadows. They only shade the light that comes from the sky, so caves and the night stay vanilla. Off saves the most GPU time."
+type = "bool"
+default = true
+
+[[options]]
+id = "shadow_softness"
+name = "Shadow edges"
+description = "Sharp reads the shadow map once, soft four times and very soft nine times."
+type = "choice"
+values = ["Sharp", "Soft", "Very soft"]
+default = "Soft"
+
+[[options]]
+id = "shadow_resolution"
+name = "Shadow detail"
+description = "The shadow map's size in texels. 1024 is the cheapest, 4096 the finest."
+type = "choice"
+values = ["1024", "2048", "4096"]
+default = "2048"
+
+[[options]]
+id = "shadow_distance"
+name = "Shadow distance"
+description = "How far shadows reach, in blocks. Aurora's own profile uses 64 (low) to 192 (high) and 224 (ultra)."
+type = "int"
+default = 64
+min = 64
+max = 512
+
+[[options]]
+id = "shadow_strength"
+name = "Shadow depth"
+description = "How dark a shadow is: above 1 the shade deepens, 0 leaves the sun's light in shadows but stops it darkening anything."
+type = "float"
+default = 2.4
+min = 0.0
+max = 3.0
+step = 0.05
+
+[[options]]
+id = "sun_strength"
+name = "Sunlight"
+description = "How much the sun adds on top of vanilla's light. 0 is vanilla's own brightness; above it the sun lit faces get brighter."
+type = "float"
+default = 2.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+# --- Glow of the blocks ------------------------------------------------------------
+
+[[options]]
+id = "torch_glow"
+name = "Torch glow"
+description = "How bright torches, lanterns, campfires, candles and fire shine. Above 1 they go past white and the glow pass picks them up."
+type = "float"
+default = 1.0
+min = 0.0
+max = 3.0
+step = 0.05
+
+[[options]]
+id = "torch_glow_tint"
+name = "Torch glow colour"
+description = "Warm/cool shift of that glow: 0 keeps the texture's colour, above 0 warmer and orange, below 0 cooler and blue."
+type = "float"
+default = 0.35
+min = -1.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "lava_glow"
+name = "Lava glow"
+description = "How bright lava and magma shine."
+type = "float"
+default = 1.0
+min = 0.0
+max = 3.0
+step = 0.05
+
+[[options]]
+id = "lava_glow_tint"
+name = "Lava glow colour"
+description = "Warm/cool shift of the lava's glow."
+type = "float"
+default = 0.2
+min = -1.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "glowstone_glow"
+name = "Lamp glow"
+description = "Glowstone, shroomlight, froglights, sea lanterns, end rods, beacons, conduits."
+type = "float"
+default = 1.0
+min = 0.0
+max = 3.0
+step = 0.05
+
+[[options]]
+id = "glowstone_glow_tint"
+name = "Lamp glow colour"
+description = "Warm/cool shift of that glow."
+type = "float"
+default = 0.0
+min = -1.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "crystal_glow"
+name = "Crystal glow"
+description = "Amethyst, portals, crying obsidian and respawn anchors."
+type = "float"
+default = 1.0
+min = 0.0
+max = 3.0
+step = 0.05
+
+[[options]]
+id = "crystal_glow_tint"
+name = "Crystal glow colour"
+description = "Warm/cool shift of that glow; below 0 shifts it toward blue and violet."
+type = "float"
+default = 0.0
+min = -1.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "block_light_warmth"
+name = "Block light colour"
+description = "How far the light these blocks cast takes their colour: a warm torch reads warmer on the walls, while the brightness stays vanilla's. 0 leaves it vanilla. The same shift lights the ground around a light source in your hand."
+type = "float"
+default = 1.0
+min = 0.0
+max = 1.0
+step = 0.05
+
+# --- Water ------------------------------------------------------------------------
+
+[[options]]
+id = "water_reflections"
+name = "Water reflections"
+description = "The world mirrored in the water's surface."
+type = "bool"
+default = true
+
+[[options]]
+id = "reflection_strength"
+name = "Reflection strength"
+description = "How much of the mirror the water shows; 0 is vanilla's flat colour."
+type = "float"
+default = 1.0
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "water_transparency"
+name = "Water transparency"
+description = "0 keeps vanilla's see-throughness, 1 is as clear as it goes."
+type = "float"
+default = 0.4
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "water_waves"
+name = "Waves"
+description = "How steep the ripples in the water's surface are; 0 is a flat top."
+type = "float"
+default = 2.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "sun_glint"
+name = "Sun glint"
+description = "The sun's or moon's glitter on the water; vanilla has none."
+type = "float"
+default = 0.2
+min = 0.0
+max = 2.0
+step = 0.05
+
+# --- Rain -------------------------------------------------------------------------
+
+[[options]]
+id = "rain_tint"
+name = "Rain colour"
+description = "The colour of the falling streaks: −1 vanilla's own, 0 the pack's cool blue, 1 its neutral grey; the slider blends between them."
+type = "float"
+default = 1.0
+min = -1.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "rain_brightness"
+name = "Rain brightness"
+description = "How bright the falling rain and snow are."
+type = "float"
+default = 1.85
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "rain_rings_ground"
+name = "Rings on ground"
+description = "The rings the drops make on soaked ground: a thin film, so a low value is almost transparent and 0 leaves the ground wet but still."
+type = "float"
+default = 0.05
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "rain_rings_water"
+name = "Rings on water"
+description = "The rings the drops make on the water, with their own strength; they also tilt the mirror and the glint."
+type = "float"
+default = 0.15
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "ring_density"
+name = "Ring amount"
+description = "How many drops land and spread a ring, on the ground and on the water together: 0 none, 1 the rain's own count, above it more."
+type = "float"
+default = 1.0
+min = 0.0
+max = 3.0
+step = 0.05
+
+[[options]]
+id = "wet_ground"
+name = "Wet ground"
+description = "How much the rain darkens the ground and makes it catch the sky; 0 keeps it dry."
+type = "float"
+default = 1.0
+min = 0.0
+max = 1.0
+step = 0.05
+
+# --- Nature -----------------------------------------------------------------------
+
+[[options]]
+id = "waving_plants"
+name = "Waving plants"
+description = "Vanilla's plants stand still; this sways leaves and flowers."
+type = "bool"
+default = true
+
+[[options]]
+id = "wind_calm"
+name = "Wind"
+description = "How hard the wind blows on a calm hour; 0 leaves leaves and blades still."
+type = "float"
+default = 0.2
+min = 0.0
+max = 3.0
+step = 0.05
+
+[[options]]
+id = "wind_rain"
+name = "Wind in rain"
+description = "The wind while it rains."
+type = "float"
+default = 1.9
+min = 0.0
+max = 4.0
+step = 0.05
+
+[[options]]
+id = "wind_thunder"
+name = "Wind in a storm"
+description = "The wind while it thunders."
+type = "float"
+default = 5.0
+min = 0.0
+max = 5.0
+step = 0.05

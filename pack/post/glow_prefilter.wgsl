@@ -4,6 +4,6 @@ override bloom: f32 = 0.15;
 
 fn post(input: PostInput) -> vec4<f32> {
     let c = textureSampleLevel(previous, linear_sampler, input.uv, 0.0).rgb;
-    let k = smoothstep(0.70, 0.95, luma(c));
+    let k = smoothstep(0.90, 1.60, luma(c));
     return vec4<f32>(c * k, 1.0);
 }

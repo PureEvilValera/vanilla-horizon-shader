@@ -1,7 +1,21 @@
 # AGENTS.md — vanilla-horizon
 
-A Horizon shader pack in WGSL (`schema = 1`, shader API 0.1). Vanilla's own light is the base; the
+A Horizon shader pack in WGSL (`schema = 1`, shader API 0.2). Vanilla's own light is the base; the
 sun, the moon, shadows, the sky's glow, water, rain and block glow are added on top.
+
+## The published pack and the archive
+
+- `pack/` — the pack Horizon lists: **shader API 0.2**, id `vanilla_horizon`, built as
+  `dist/vanilla_horizon-<version>.hshader`. Linear light, `[frame] fog = "pack"`, `vanilla_fog()`,
+  `input.shade * input.ao` in vanilla's surface, and a `[tonemap]` stage with `Tone curve`/`Exposure`.
+  Every gamma-tuned constant in it has already been converted with the 2.2 power.
+- `archive/api-0.1/pack/` — the frozen 0.1 sources (2.10.2). The registry freezes 0.1 entries; this
+  directory exists so the published 0.1 file can still be reproduced, not to be edited.
+- `dist/` — the current 0.2 file and the last 0.1 one; releases carry the 0.2 file.
+- `tools/ci.py` pins Horizon `main` (0.2). `tools/check.py` is agnostic.
+
+Version numbering follows the published line: 2.10.2 was the last 0.1 release, 2.11.0 the first 0.2
+one — no intermediate numbers, the registry matches the version in the manifest against the release.
 
 ## Layout
 

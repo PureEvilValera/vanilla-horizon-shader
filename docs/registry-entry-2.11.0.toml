@@ -1,0 +1,39 @@
+# Ready-to-submit entry for horizon-mods, 2.11.0.
+# Copied from PR #1103 (the 2.10.2 entry) with the new version; see docs/registry-submission-2.11.0.md.
+id = "vanilla_horizon"
+kind = "shader"
+name = "Vanilla Horizon"
+summary = "Vanilla Minecraft's light, plus real sunrises and sunsets, water and rain."
+description = "Vanilla's own light is the base: the sun and the moon cast shadows on top of it, the blocks the low sun reaches turn warm, rays spill across the horizon, and the air near the ground takes the hour's colour. The water, the rain and the glowing blocks are the pack's own."
+authors = ["PureEvilValera"]
+owners = ["PureEvilValera"]
+owner_ids = [130057984]
+license = "MIT"
+source = "https://github.com/PureEvilValera/vanilla-horizon-shader"
+icon = "icons/vanilla_horizon.png"
+categories = ["vanilla-like", "atmosphere", "shadows"]
+screenshots = [
+    "screenshots/vanilla_horizon/1.jpg",
+    "screenshots/vanilla_horizon/2.jpg",
+    "screenshots/vanilla_horizon/3.jpg",
+    "screenshots/vanilla_horizon/4.jpg",
+    "screenshots/vanilla_horizon/5.jpg",
+    "screenshots/vanilla_horizon/6.jpg",
+    "screenshots/vanilla_horizon/7.jpg",
+    "screenshots/vanilla_horizon/8.jpg",
+]
+
+[[versions]]
+version = "2.11.0"
+published = "2026-11-19"
+game = "26.3"
+file = "vanilla_horizon-2.11.0.hshader"
+sha256 = "f734a1344f058ba54b4a790250d9d85c991c48f8d6a087a88d567180a13149ee"
+changelog = """
+Moved to shader API 0.2: linear light, [frame] fog = "pack", vanilla_fog(), the face's shade and
+ambient occlusion as fields of their own, and a [tonemap] stage with Tone curve and Exposure.
+Fixed the doubled sun and moon at a silhouette (Skyline haze no longer samples the picture).
+Far water and Far water distance keep the end of the loaded chunks from cutting a lake off.
+Cave fog clears the render-distance fog out of the caves.
+Ground mist for the dawn, the dusk and the night, with its own height and distance.
+"""

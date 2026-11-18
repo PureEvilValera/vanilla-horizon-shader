@@ -1,8 +1,8 @@
 schema = 1
 id = "vanilla_horizon"
 name = "Vanilla Horizon"
-version = "2.10.2"
-api = "0.1"
+version = "2.11.0"
+api = "0.2"
 description = "Vanilla's own light, kept whole: the sun and the moon add to it and shadows take back only a bounded part of the sky's light, so caves, torches and night stay vanilla. Water with waves, a mirror and its own transparency, plus sun rays at dawn and dusk."
 authors = ["pev"]
 license = "MIT"
@@ -20,8 +20,6 @@ stars = true
 [material]
 file = "material.wgsl"
 name = "Terrain light and water"
-# The pack fogs its surfaces itself: vanilla's density and distances, its colour warmed at dusk.
-fog = false
 
 [weather]
 file = "weather.wgsl"
@@ -33,6 +31,14 @@ name = "Waving plants"
 
 # The shadow pass draws the terrain again in the light's square, so its cost grows with the
 # distance squared: 2048/128 is the default, and the options below are the way to pay less.
+# 0.2: the pack fogs its own stages (it paints the haze itself), so Horizon skips its fog there.
+[frame]
+fog = "pack"
+
+# The curve the linear picture goes through once per pixel of the window.
+[tonemap]
+file = "tonemap.wgsl"
+
 [shadow]
 option = "shadows"
 resolution_option = "shadow_resolution"
@@ -96,32 +102,6 @@ sprites = [
     "block/beetroots_stage*",
 ]
 
-[[materials]]
-id = 3
-blocks = [
-    "torch", "wall_torch", "soul_torch", "soul_wall_torch", "redstone_torch", "redstone_wall_torch",
-    "lantern", "soul_lantern", "campfire", "soul_campfire", "jack_o_lantern", "fire", "soul_fire",
-    "candle", "*_candle",
-]
-
-[[materials]]
-id = 4
-blocks = ["lava", "magma_block"]
-
-[[materials]]
-id = 5
-blocks = [
-    "glowstone", "shroomlight", "ochre_froglight", "pearlescent_froglight", "verdant_froglight",
-    "sea_lantern", "end_rod", "beacon", "conduit",
-]
-
-[[materials]]
-id = 6
-blocks = [
-    "amethyst_cluster", "*_amethyst_bud", "nether_portal", "end_portal", "end_gateway",
-    "crying_obsidian", "respawn_anchor",
-]
-
 # --- The block light these groups cast, and its colour ---
 
 [[lights]]
@@ -153,13 +133,13 @@ blocks = ["amethyst_cluster", "*_amethyst_bud", "crying_obsidian", "nether_porta
 [[pages]]
 id = "main"
 name = "Vanilla Horizon"
-items = ["page:sky", "page:dawn", "page:dusk", "page:moon", "page:light", "page:glow", "page:water", "page:rain", "page:nature", ""]
+items = ["page:sky", "page:dawn", "page:dusk", "page:night", "page:light", "page:glow", "page:water", "page:rain", "page:nature", ""]
 
 [[pages]]
 id = "sky"
 name = "Sky and clouds"
 description = "How thick the daytime air is, and the glow around the sun."
-items = ["day_fog", "skyline", "bloom", ""]
+items = ["day_fog", "cave_fog", "skyline", "bloom", "tone_curve", "exposure", "mist_height", "mist_start", ""]
 
 [[pages]]
 id = "dawn"
@@ -174,6 +154,7 @@ items = [
     "dawn_haze",
     "dawn_rays",
     "dawn_rays_color",
+    "dawn_mist",
     "",
 ]
 
@@ -190,14 +171,15 @@ items = [
     "dusk_haze",
     "dusk_rays",
     "dusk_rays_color",
+    "dusk_mist",
     "",
 ]
 
 [[pages]]
-id = "moon"
-name = "Moon"
-description = "The moon's own light: never the sunset's orange."
-items = ["moon_strength", "moon_tint", "moon_glow", ""]
+id = "night"
+name = "Night"
+description = "The moon's own light and the night's haze: never the sunset's orange."
+items = ["moon_strength", "moon_tint", "moon_glow", "night_mist", "midnight_mist", ""]
 
 [[pages]]
 id = "light"
@@ -216,31 +198,37 @@ items = [
 [[pages]]
 id = "glow"
 name = "Block glow"
-description = "How bright the light-emitting blocks shine and how warm that is, plus the colour of the light they cast on what is around them."
-items = [
-    "torch_glow",
-    "torch_glow_tint",
-    "lava_glow",
-    "lava_glow_tint",
-    "glowstone_glow",
-    "glowstone_glow_tint",
-    "crystal_glow",
-    "crystal_glow_tint",
-    "block_light_warmth",
-    "",
-]
+description = "The colour of the light the torches, the lanterns, the glowstone and the crystals cast on what is around them. Brightness stays vanilla's."
+items = ["block_light_warmth", ""]
 
 [[pages]]
 id = "water"
 name = "Water"
 description = "The mirror, the ripples, the glint and how far you see into the water."
-items = ["water_reflections", "reflection_strength", "water_transparency", "water_waves", "sun_glint", ""]
+items = [
+    "water_reflections",
+    "reflection_strength",
+    "water_transparency",
+    "water_waves",
+    "sun_glint",
+    "far_water",
+    "far_water_start",
+    "",
+]
 
 [[pages]]
 id = "rain"
 name = "Rain"
 description = "The rain and the snow themselves, and what the rain leaves on the ground."
-items = ["rain_tint", "rain_brightness", "rain_rings_ground", "rain_rings_water", "ring_density", "wet_ground", ""]
+items = [
+    "rain_tint",
+    "rain_brightness",
+    "rain_rings_ground",
+    "rain_rings_water",
+    "ring_density",
+    "wet_ground",
+    "",
+]
 
 [[pages]]
 id = "nature"
@@ -258,6 +246,16 @@ type = "float"
 default = 0.35
 min = 0.0
 max = 2.0
+step = 0.05
+
+[[options]]
+id = "cave_fog"
+name = "Cave fog"
+description = "How much of the fog stays where a face sees no sky at all: 0 clears the caves and the cellars, 1 keeps vanilla's fog underground."
+type = "float"
+default = 0.0
+min = 0.0
+max = 1.0
 step = 0.05
 
 [[options]]
@@ -281,6 +279,26 @@ max = 1.0
 step = 0.05
 
 # --- Dawn -------------------------------------------------------------------------
+
+[[options]]
+id = "exposure"
+name = "Exposure"
+description = "The picture's exposure before the tone curve maps it to the display."
+type = "float"
+default = 1.0
+min = 0.5
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "tone_curve"
+name = "Tone curve"
+description = "0 clips the picture at white the way the game does, 1 is the full filmic curve. Above about 0.5 the contrast stops reading as vanilla's."
+type = "float"
+default = 0.25
+min = 0.0
+max = 1.0
+step = 0.05
 
 [[options]]
 id = "dawn_warmth"
@@ -353,6 +371,16 @@ max = 1.0
 step = 0.05
 
 [[options]]
+id = "dawn_mist"
+name = "Dawn mist"
+description = "How thick the ground mist is at sunrise: 0 none, 1 a valley filled to `Mist height`, 2 twice as thick again."
+type = "float"
+default = 0.55
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
 id = "dawn_rays_color"
 name = "Dawn rays colour"
 description = "Extra saturation of the rays: above 0 redder, below it yellower."
@@ -363,6 +391,26 @@ max = 0.5
 step = 0.05
 
 # --- Dusk -------------------------------------------------------------------------
+
+[[options]]
+id = "mist_height"
+name = "Mist height"
+description = "How many blocks above the sea the ground mist climbs before it thins out; the dawn and the dusk each have their own amount."
+type = "float"
+default = 3.5
+min = 2.0
+max = 16.0
+step = 0.5
+
+[[options]]
+id = "mist_start"
+name = "Mist distance"
+description = "How many chunks from the player the mist starts: 0 has it from the camera, 1 keeps the first sixteen blocks clear, 3 the first forty-eight. It fades in over the next block and a half."
+type = "float"
+default = 1.0
+min = 0.0
+max = 8.0
+step = 1.0
 
 [[options]]
 id = "dusk_warmth"
@@ -435,6 +483,16 @@ max = 1.0
 step = 0.05
 
 [[options]]
+id = "dusk_mist"
+name = "Dusk mist"
+description = "How thick the ground mist is at sunset: 0 none, 1 a valley filled to `Mist height`, 2 twice as thick again."
+type = "float"
+default = 0.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
 id = "dusk_rays_color"
 name = "Dusk rays colour"
 description = "Extra saturation of the rays: above 0 redder, below it yellower."
@@ -445,6 +503,26 @@ max = 0.5
 step = 0.05
 
 # --- Moon -------------------------------------------------------------------------
+
+[[options]]
+id = "night_mist"
+name = "Night mist"
+description = "The mist of the evening right after the sun sets: it thins as the night deepens and hands over to Midnight mist. 0 leaves the evening clear."
+type = "float"
+default = 2.0
+min = 0.0
+max = 2.0
+step = 0.05
+
+[[options]]
+id = "midnight_mist"
+name = "Midnight mist"
+description = "The mist of the small hours, which Night mist hands over to as the night deepens. At 0 only the evening keeps its mist."
+type = "float"
+default = 0.65
+min = 0.0
+max = 2.0
+step = 0.05
 
 [[options]]
 id = "moon_strength"
@@ -533,86 +611,6 @@ step = 0.05
 # --- Glow of the blocks ------------------------------------------------------------
 
 [[options]]
-id = "torch_glow"
-name = "Torch glow"
-description = "How bright torches, lanterns, campfires, candles and fire shine. Above 1 they go past white and the glow pass picks them up."
-type = "float"
-default = 1.0
-min = 0.0
-max = 3.0
-step = 0.05
-
-[[options]]
-id = "torch_glow_tint"
-name = "Torch glow colour"
-description = "Warm/cool shift of that glow: 0 keeps the texture's colour, above 0 warmer and orange, below 0 cooler and blue."
-type = "float"
-default = 0.35
-min = -1.0
-max = 1.0
-step = 0.05
-
-[[options]]
-id = "lava_glow"
-name = "Lava glow"
-description = "How bright lava and magma shine."
-type = "float"
-default = 1.0
-min = 0.0
-max = 3.0
-step = 0.05
-
-[[options]]
-id = "lava_glow_tint"
-name = "Lava glow colour"
-description = "Warm/cool shift of the lava's glow."
-type = "float"
-default = 0.2
-min = -1.0
-max = 1.0
-step = 0.05
-
-[[options]]
-id = "glowstone_glow"
-name = "Lamp glow"
-description = "Glowstone, shroomlight, froglights, sea lanterns, end rods, beacons, conduits."
-type = "float"
-default = 1.0
-min = 0.0
-max = 3.0
-step = 0.05
-
-[[options]]
-id = "glowstone_glow_tint"
-name = "Lamp glow colour"
-description = "Warm/cool shift of that glow."
-type = "float"
-default = 0.0
-min = -1.0
-max = 1.0
-step = 0.05
-
-[[options]]
-id = "crystal_glow"
-name = "Crystal glow"
-description = "Amethyst, portals, crying obsidian and respawn anchors."
-type = "float"
-default = 1.0
-min = 0.0
-max = 3.0
-step = 0.05
-
-[[options]]
-id = "crystal_glow_tint"
-name = "Crystal glow colour"
-description = "Warm/cool shift of that glow; below 0 shifts it toward blue and violet."
-type = "float"
-default = 0.0
-min = -1.0
-max = 1.0
-step = 0.05
-
-[[options]]
 id = "block_light_warmth"
 name = "Block light colour"
 description = "How far the light these blocks cast takes their colour: a warm torch reads warmer on the walls, while the brightness stays vanilla's. 0 leaves it vanilla. The same shift lights the ground around a light source in your hand."
@@ -660,6 +658,26 @@ default = 2.0
 min = 0.0
 max = 2.0
 step = 0.05
+
+[[options]]
+id = "far_water"
+name = "Far water"
+description = "How strongly the far water dissolves into the horizon, so the end of the loaded chunks does not cut it off: 0 leaves the edge sharp, 1 hides it."
+type = "float"
+default = 0.45
+min = 0.0
+max = 1.0
+step = 0.05
+
+[[options]]
+id = "far_water_start"
+name = "Far water distance"
+description = "How many blocks before the render distance the far water starts to dissolve: small keeps it a thin band at the end of the chunks, large lets the far half of a lake haze over."
+type = "float"
+default = 320.0
+min = 0.0
+max = 320.0
+step = 4.0
 
 [[options]]
 id = "sun_glint"
@@ -718,7 +736,7 @@ id = "ring_density"
 name = "Ring amount"
 description = "How many drops land and spread a ring, on the ground and on the water together: 0 none, 1 the rain's own count, above it more."
 type = "float"
-default = 1.0
+default = 0.7
 min = 0.0
 max = 3.0
 step = 0.05

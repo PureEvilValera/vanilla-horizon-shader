@@ -13,12 +13,6 @@ const TAU: f32 = 6.2831853;
 // [[materials]] ids from horizon-shaders.toml.
 const MAT_LEAVES: u32 = 1u;
 const MAT_PLANT: u32 = 2u;
-// The light-emitting groups, each with its own glow settings.
-const MAT_TORCH: u32 = 3u;
-const MAT_LAVA: u32 = 4u;
-const MAT_GLOWSTONE: u32 = 5u;
-const MAT_CRYSTAL: u32 = 6u;
-
 // A colour shifted along the warm/cool axis by `t` (-1 cool blue, 0 as it is, +1 deep orange),
 // keeping its brightness: only the channels move.
 fn shift_hue(c: vec3<f32>, t: f32) -> vec3<f32> {
@@ -32,15 +26,15 @@ fn shift_hue(c: vec3<f32>, t: f32) -> vec3<f32> {
 }
 
 // How much direct sunlight adds on top of vanilla's light at Sunlight 1.
-const SUN_ADD: f32 = 0.18;
+const SUN_ADD: f32 = 0.022;
 // The same for the moon. It matches the sun's share, so `Moonlight` 0.3 already gives a night you
 // can read the ground by, and its light is there the whole night, not only while it rises.
-const MOON_ADD: f32 = 0.18;
+const MOON_ADD: f32 = 0.022;
 // The most a shadow takes away from vanilla's sky light, so a shadow is shade and never night.
-const SHADE: f32 = 0.18;
+const SHADE: f32 = 0.022;
 // A low sun always gives a little of its own warm light: without it the dawn and the dusk would
 // stay exactly vanilla's and the shadows would have nothing to cut.
-const SUNSET_ADD: f32 = 0.12;
+const SUNSET_ADD: f32 = 0.0094;
 
 // --- The light of the hour ---------------------------------------------------------
 
@@ -148,11 +142,11 @@ fn direct_color() -> vec3<f32> {
     let l = frame.light_direction;
     let is_sun = dot(l, frame.sun_direction) > 0.0;
     let high = smoothstep(0.0, 0.30, l.y);
-    let orange = vec3<f32>(1.0, 0.50, 0.18);
-    let white = vec3<f32>(1.0, 0.96, 0.9);
+    let orange = vec3<f32>(1.0, 0.217, 0.024);
+    let white = vec3<f32>(1.0, 0.914, 0.79);
     let warmth = clamp(side_mix(dawn_warmth, dusk_warmth), 0.0, 1.0);
     let sun = mix(white, mix(white, orange, warmth), 1.0 - high);
-    let moon = mix(vec3<f32>(0.62, 0.72, 1.0), vec3<f32>(1.0, 0.92, 0.8), clamp(moon_tint, 0.0, 1.0));
+    let moon = mix(vec3<f32>(0.34, 0.49, 1.0), vec3<f32>(1.0, 0.83, 0.61), clamp(moon_tint, 0.0, 1.0));
     let weather = 1.0 - 0.85 * bad_weather();
     let boost = side_mix(dawn_light, dusk_light);
     let sun_gain = (SUN_ADD * max(sun_strength, 0.0) + SUNSET_ADD * sun_low() * clamp(boost, 0.0, 2.0))
@@ -182,16 +176,10 @@ fn rays_amount() -> f32 {
 // The rays' colour: warm by `Sun warmth`, more or less saturated by `Rays colour`.
 fn rays_hue() -> vec3<f32> {
     let warmth = clamp(side_mix(dawn_warmth, dusk_warmth), 0.0, 1.0);
-    let c = mix(vec3<f32>(1.0, 0.92, 0.82), vec3<f32>(1.0, 0.55, 0.28), warmth);
+    let c = mix(vec3<f32>(1.0, 0.83, 0.65), vec3<f32>(1.0, 0.26, 0.06), warmth);
     let grey = vec3<f32>(luma(c));
     let tinted = mix(grey, c, clamp(1.0 + 2.0 * side_mix(dawn_rays_color, dusk_rays_color), 0.0, 2.0));
     return tinted / max(luma(tinted), 0.001);
-}
-
-// A soft shoulder above 0.78, so bright light rolls into white instead of clipping.
-fn shoulder(c: vec3<f32>) -> vec3<f32> {
-    let over = max(c - vec3<f32>(0.78), vec3<f32>(0.0));
-    return min(c, vec3<f32>(0.78)) + 0.22 * (vec3<f32>(1.0) - exp(-over * 4.5));
 }
 
 // Interleaved gradient noise (Jimenez 2014): a cheap, well spread 0..1 value per pixel.

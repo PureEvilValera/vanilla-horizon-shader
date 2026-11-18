@@ -43,31 +43,21 @@ colour. The water, the rain and the glowing blocks are the pack's own.
 
 ## Install
 
-1. Horizon → Options → Horizon Settings → Shader Packs → **Open Pack Folder**.
-2. Drop either the `pack/` folder (with `horizon-shaders.toml` at its root) or
-   `dist/vanilla_horizon-2.10.2.hshader` in there.
-3. Reopen the page and pick **Vanilla Horizon**.
+Horizon retired shader API 0.1 on 2026-11-15: every current build serves only **0.2**, and the
+earlier 0.1 file is kept here for old builds and for the record.
 
-Options are grouped on pages: Sky and clouds · Dawn · Dusk · Moon · Light and shadows · Block glow ·
-Water · Rain · Nature. Horizon's **Reset all options** puts every slider back at the pack's
-defaults.
-
-## What is in the repository
-
-| Path | What it is |
+| Your Horizon | Take |
 | --- | --- |
-| `pack/` | the pack itself — the only folder Horizon reads: manifest, WGSL stages, icon-free assets, licence |
-| `dist/vanilla_horizon-2.10.2.hshader` | the built pack, exactly what Horizon's own packer writes |
-| `dist/vanilla-horizon-shader-2.10.2.zip` | **the file to send someone**: the pack as a folder to unzip into `shaderpacks/`, with `УСТАНОВКА.txt` beside it |
-| `tools/check.py` | fast pre-flight: manifest, options ↔ overrides, `[[pages]]` reachability, pack-root files |
-| `tools/pack.py` | builds `dist/` with `horizon-shader pack` when it is installed |
-| `screenshots/` | the images above, downscaled to 1440 px wide so the repository stays light |
-| `docs/release-notes-*.md` | the body of each GitHub release |
-| `AGENTS.md` | notes for whoever (or whatever) edits the pack next: layout, conventions, design decisions |
+| serves **0.2** — every build since 15.11.2026, and the launcher's own `--launch-api` | `dist/vanilla_horizon-2.11.0.hshader`, start the game with `HORIZON_HDR_FRAME=float` |
+| serves **0.1** — e.g. nightly 13.11.2026 (archived) | `dist/vanilla_horizon-2.10.2.hshader` |
 
-The pack root may hold only what the format allows (`horizon-shaders.toml`, `.wgsl`, `[[textures]]`
-PNGs, `README.md`, `LICENSE*`, `icon.png`). Anything else in `pack/` makes Horizon refuse the whole
-pack, which is why the tools and the docs live beside it, not inside.
+Both install the same way: Horizon → Options → Horizon Settings → Shader Packs → **Open Pack Folder**,
+put the `.hshader` there, reopen the page, pick **Vanilla Horizon**. Do not keep two files of one id
+in that folder — Horizon lists the first one and ignores the other.
+
+The 0.2 build draws in linear light and passes the picture through the pack's own `[tonemap]`; its
+`Tone curve` slider (0 = the game's own clip at white, 1 = the filmic curve) is the one to reach for
+if the contrast does not feel like vanilla's.
 
 ## Releases, built by CI
 
@@ -77,8 +67,8 @@ Two workflows, no local tooling needed:
   own check and package. It builds `horizon-shader` from the Horizon commit pinned in `tools/ci.py`
   (cached between runs) and uploads the packaged files as a build artifact.
 - `.github/workflows/release.yml` — on a `v*` tag: verifies the tag against `version` in the
-  manifest, checks, packages, and attaches both files to the release, with the notes taken from
-  `docs/release-notes-<version>.md`.
+  manifest, checks, packages, and attaches the `.hshader` and the friend-ready zip to the release,
+  with the notes taken from `docs/release-notes-<version>.md`.
 
 So a release is:
 
@@ -88,6 +78,9 @@ git add -A && git commit -m "Vanilla Horizon <version>"
 git tag -a v<version> -m "Vanilla Horizon <version>"
 git push origin main v<version>
 ```
+
+The registry takes a pack version straight from a release asset, so the tag, the manifest's
+`version` and the file name all have to agree: `v2.11.0` → `vanilla_horizon-2.11.0.hshader`.
 
 Both files come from the same packer the registry uses, so their SHA-256 match a local
 `python3 tools/pack.py`.

@@ -29,7 +29,7 @@ def pack_files(manifest: dict[str, object]) -> list[str]:
     shared = manifest.get("shared", [])
     if isinstance(shared, list):
         files += [str(f) for f in shared]
-    for stage in ("sky", "material", "vertex", "weather"):
+    for stage in ("sky", "material", "vertex", "weather", "entity", "tonemap"):
         block = manifest.get(stage)
         if isinstance(block, dict) and "file" in block:
             files.append(str(block["file"]))

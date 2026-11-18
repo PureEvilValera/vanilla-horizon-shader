@@ -20,15 +20,11 @@ override water_transparency: f32 = 0.4;
 override water_waves: f32 = 1.0;
 // The sun's or moon's glint on the water (vanilla has none).
 override sun_glint: f32 = 0.2;
-// Glow of the light-emitting groups: brightness, then a shift along the warm/cool axis.
-override torch_glow: f32 = 1.0;
-override torch_glow_tint: f32 = 0.35;
-override lava_glow: f32 = 1.0;
-override lava_glow_tint: f32 = 0.2;
-override glowstone_glow: f32 = 1.0;
-override glowstone_glow_tint: f32 = 0.0;
-override crystal_glow: f32 = 1.0;
-override crystal_glow_tint: f32 = 0.0;
+// How strongly the far water dissolves into the horizon: 0 leaves its edge sharp, 1 hides it.
+override far_water: f32 = 0.45;
+// How many blocks before the render distance that dissolve begins: a small number keeps it a thin
+// band at the end of the chunks, a large one lets the far half of a lake haze over.
+override far_water_start: f32 = 320.0;
 // How far the block light of `[[lights]]` shifts the light on the surfaces it reaches: brightness
 // stays vanilla's, only the hue moves.
 override block_light_warmth: f32 = 1.0;
@@ -41,7 +37,9 @@ override wet_ground: f32 = 1.0;
 
 // How thick the air is by day, against vanilla's own fog: 1 is exactly vanilla, 0 no fog at all.
 // The dawn and the dusk do not use it — they keep the pack's own thickness.
-override day_fog: f32 = 0.75;
+override day_fog: f32 = 0.35;
+// How much of the fog stays where a face sees no sky: 0 clears the caves and the cellars.
+override cave_fog: f32 = 0.0;
 
 // --- Shadows -------------------------------------------------------------------
 
@@ -94,23 +92,26 @@ fn shadow_at(p: vec3<f32>, offset_dir: vec3<f32>, ndl: f32) -> f32 {
 
 // Vanilla's fog, with its colour warmed on a low sun's side: the haze the distance gets at dawn and
 // dusk. The distances are vanilla's own (`fog_start`/`fog_end`), so the density is unchanged.
-fn air(color: vec3<f32>, position: vec3<f32>) -> vec3<f32> {
-    let start = frame.fog_start;
-    let end = max(frame.fog_end, start + 0.01);
-    // By day the air takes `Day fog` of vanilla's thickness; at dawn and dusk it thickens to the
-    // pack's own, which is vanilla's fog with the low sun's colour in it.
+fn air(color: vec3<f32>, position: vec3<f32>, open: f32) -> vec3<f32> {
+    // 0.2: Horizon hands the pack `vanilla_fog`, the very curve it would mix itself, so the
+    // density matches vanilla exactly; `Day fog` scales it and the hour decides how much.
     let low = 1.0 - smoothstep(0.0, 0.30, abs(frame.sun_direction.y));
     let density = mix(clamp(day_fog, 0.0, 2.0), 1.0, low);
-    let k = clamp(smoothstep(start, end, length(position)) * density, 0.0, 1.0);
+    // Underground the render-distance fog is all there is, and it reads as a fog bank in a cave:
+    // `Cave fog` takes it away where the face sees no sky.
+    let underground = mix(clamp(cave_fog, 0.0, 1.0), 1.0, open);
+    let k = clamp(vanilla_fog(position) * density * underground, 0.0, 1.0);
     if k <= 0.0 {
         return color;
     }
     // The warm haze sits on the ground layer and thins with height, the way a valley fills at dusk.
     let height = frame.camera_position.y + position.y;
     let ground = exp(-max(height - 60.0, 0.0) / 28.0);
-    let warm = frame.fog_color * vec3<f32>(1.32, 0.82, 0.5) + vec3<f32>(0.07, 0.03, 0.0);
+    let warm = frame.fog_color * vec3<f32>(1.83, 0.65, 0.21) + vec3<f32>(0.003, 0.0006, 0.0);
+    // Only the air a face can see the sky through takes the hour's colour: a cave keeps vanilla's
+    // fog, so its walls do not turn orange at dusk and do not haze over at all.
     let amount = low * clamp(side_mix(dawn_haze, dusk_haze), 0.0, 1.0)
-        * (1.0 - 0.45 * bad_weather()) * (0.45 + 0.75 * ground);
+        * (1.0 - 0.45 * bad_weather()) * (0.45 + 0.75 * ground) * open;
     let fog = mix(frame.fog_color, warm, amount);
     return mix(color, fog, k);
 }
@@ -166,7 +167,7 @@ fn water(input: MaterialInput) -> Surface {
     var col = mix(vanilla.rgb, mirror, fresnel);
     let sky_share = clamp(input.light.y * (1.25 - 0.75 * input.light.x), 0.0, 1.0);
     let dusk = sun_low() * sky_share;
-    col = mix(col, col * vec3<f32>(1.50, 0.82, 0.44),
+    col = mix(col, col * vec3<f32>(1.94, 0.70, 0.30),
         clamp(dusk * clamp(side_mix(dawn_orange, dusk_orange), 0.0, 2.0), 0.0, 1.0));
     // The sun's glint, in the light's own direction, gone under clouds and rain.
     let h = normalize(frame.light_direction - nvpos);
@@ -179,13 +180,26 @@ fn water(input: MaterialInput) -> Surface {
         let rings = drop_rings(world.xz * 2.2) + drop_rings(world.xz * 2.2 + vec2<f32>(0.5, 0.37));
         let mask = clamp(length(rings) * clamp(rain_rings_water, 0.0, 2.0) * 0.8
             * clamp(max(frame.rain, frame.thunder), 0.0, 1.0), 0.0, 1.0);
-        col = mix(col, vec3<f32>(0.82, 0.90, 1.0), mask);
+        col = mix(col, vec3<f32>(0.65, 0.79, 1.0), mask);
     }
 
     // Vanilla's water is see-through; this thins it further (the translucent pass blends the world
     // behind it), and never past a quarter of vanilla's opacity.
-    let alpha = vanilla.a * (1.0 - 0.75 * clamp(water_transparency, 0.0, 1.0));
-    return Surface(vec4<f32>(air(shoulder(clamp(col, vec3<f32>(0.0), vec3<f32>(1.0))), input.position), alpha));
+    var alpha = vanilla.a * (1.0 - 0.75 * clamp(water_transparency, 0.0, 1.0));
+    var water = air(max(col, vec3<f32>(0.0)), input.position, smoothstep(0.32, 0.92, input.light.y));
+
+    // The land hides its edge behind `Skyline haze`, but the water cannot: it is translucent, so the
+    // void below the last chunk keeps showing through the fog laid over it. Far water is therefore
+    // fogged harder than `Day fog` says and its alpha is taken to solid, and the edge disappears.
+    // The same for a surface under the camera: `vanilla_fog` already knows about that.
+    let end = frame.fog_render.y;
+    let begin = max(end - max(far_water_start, 0.0), frame.fog_render.x * 0.5);
+    let far = smoothstep(begin, end, length(input.position)) * clamp(far_water, 0.0, 1.0);
+    if far > 0.0 {
+        water = mix(water, frame.fog_color, far);
+        alpha = mix(alpha, 1.0, far);
+    }
+    return Surface(vec4<f32>(water, alpha));
 }
 
 // --- Rain on the ground ----------------------------------------------------------
@@ -217,28 +231,11 @@ fn rain_soaked(color: vec3<f32>, albedo: vec3<f32>, tint: vec3<f32>, input: Mate
     // leaves it almost invisible instead of merely dim.
     let mask = clamp(length(rings) * wetness * near
         * clamp(rain_rings_ground, 0.0, 2.0) * 0.8, 0.0, 1.0);
-    c = mix(c, vec3<f32>(0.86, 0.92, 1.0), mask);
+    c = mix(c, vec3<f32>(0.72, 0.83, 1.0), mask);
     return c;
 }
 
 // --- The material ---------------------------------------------------------------
-
-// brightness, hue shift of a light-emitting group; (1, 0) for everything else.
-fn glow_of(id: u32) -> vec2<f32> {
-    if id == MAT_TORCH {
-        return vec2<f32>(torch_glow, torch_glow_tint);
-    }
-    if id == MAT_LAVA {
-        return vec2<f32>(lava_glow, lava_glow_tint);
-    }
-    if id == MAT_GLOWSTONE {
-        return vec2<f32>(glowstone_glow, glowstone_glow_tint);
-    }
-    if id == MAT_CRYSTAL {
-        return vec2<f32>(crystal_glow, crystal_glow_tint);
-    }
-    return vec2<f32>(1.0, 0.0);
-}
 
 fn material(input: MaterialInput) -> Surface {
     if input.fluid == 1u {
@@ -247,8 +244,9 @@ fn material(input: MaterialInput) -> Surface {
 
     let albedo = input.albedo.rgb;
     let tint = input.tint.rgb;
-    // Vanilla first and whole: what the scene looks like without the pack.
-    var color = albedo * tint * input.lightmap;
+    // Vanilla first and whole: what the scene looks like without the pack. In 0.2 the face's shade
+    // and the ambient occlusion come as fields of their own, `input.shade` and `input.ao`.
+    var color = albedo * tint * input.shade * input.ao * input.lightmap;
 
     let n = input.normal;
     let l = frame.light_direction;
@@ -264,11 +262,11 @@ fn material(input: MaterialInput) -> Surface {
     // the colour it has of itself — a torch-lit cellar is not painted by the sunset.
     let sky_share = clamp(input.light.y * (1.25 - 0.75 * input.light.x), 0.0, 1.0);
     let dusk_sky = clamp(dusk * sky_share * clamp(side_mix(dawn_orange, dusk_orange), 0.0, 2.0), 0.0, 1.0);
-    color *= mix(vec3<f32>(1.0), vec3<f32>(1.55, 0.80, 0.40), dusk_sky);
+    color *= mix(vec3<f32>(1.0), vec3<f32>(1.94, 0.70, 0.30), dusk_sky);
     let warm_w = clamp(side_mix(dawn_warmth, dusk_warmth), 0.0, 1.0);
     // A low sun also fills the air with its own colour, so a face turned away from it is still lit
     // by that hour instead of dropping back to a cold daylight.
-    color += albedo * tint * vec3<f32>(1.0, 0.52, 0.26) * 0.18 * dusk * sky_share;
+    color += albedo * tint * vec3<f32>(1.0, 0.28, 0.08) * 0.03 * dusk * sky_share;
     let leaf = input.material == MAT_LEAVES;
     let plant = input.material == MAT_PLANT;
 
@@ -331,11 +329,9 @@ fn material(input: MaterialInput) -> Surface {
 
     // A block that shines keeps shining: redstone, glowstone and lava. Its group decides how
     // bright and how warm that is; above 1 it goes past white, which is what the glow pass picks up.
-    let glow = glow_of(input.material);
-    if input.emission > 0.001 && glow.x > 0.0 {
-        let shine = shift_hue(albedo * tint, glow.y) * clamp(input.emission * glow.x, 0.0, 4.0);
-        color = max(color, shine);
-    }
+    // A block that shines keeps shining, in its own texture's colour: the flame, the lantern's core,
+    // the lava. No group settings, no flicker damping.
+    color = max(color, albedo * tint * input.emission);
 
     // The block light of `[[lights]]`: a hue shift on what blocks light reaches, its brightness
     // untouched, so a warm torch reads warm without re-lighting the room.
@@ -359,5 +355,5 @@ fn material(input: MaterialInput) -> Surface {
         let peak = max(hue.r, max(hue.g, hue.b));
         color += albedo * tint * hue / max(peak, 0.0001) * reach * 0.9;
     }
-    return Surface(vec4<f32>(air(shoulder(color), input.position), input.albedo.a));
+    return Surface(vec4<f32>(air(max(color, vec3<f32>(0.0)), input.position, open), input.albedo.a));
 }

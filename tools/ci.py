@@ -37,12 +37,12 @@ SOURCE = CACHE / "horizon"
 TARGET = CACHE / "target"
 BIN = CACHE / "bin" / "horizon-shader"
 
-# Horizon at the commit this pack is checked against. It must be a commit that still serves this
-# pack's `api` line: Horizon's main retired 0.1 on 2026-11-15 (`f82620a`, "the game serves only 0.2"),
-# so a later commit refuses a 0.1 pack outright. Bump this pin together with the manifest's `api`,
-# never on its own: the tool is the authority for that line.
+# Horizon at the commit this pack is checked against. It must be a commit that serves this pack's
+# `api` line: the pack is 0.2 since 2.11.0 (main retired 0.1 on 2026-11-15, `f82620a`), so the pin
+# follows main. Bump it together with the manifest's `api`, never on its own: the tool is the
+# authority for that line.
 HORIZON_REPO = "horizon-rust/horizon"
-HORIZON_SHA = "e6212cb9e2d10fe880e0672750eda21fd1bdf3e3"  # the last commit serving API 0.1
+HORIZON_SHA = "413ef02fddfac06ece3d318e88f0764fbd7d268c"  # main, shader API 0.2
 HORIZON_CRATE = "horizon-shader-api"
 HORIZON_BIN = "horizon-shader"
 
