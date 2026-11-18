@@ -8,7 +8,7 @@ builds it once into `.ci/`, so a release is always built by the same tool the re
 `.ci/` holds three things, and the workflow caches the middle one:
     .ci/horizon/   the unpacked Horizon source at HORIZON_SHA
     .ci/target/    CARGO_TARGET_DIR for that build
-    .ci/bin/       the built horizon-shader
+    .ci/bin/<sha>/  the built horizon-shader, keyed by the pin
 
 Usage:
     python3 tools/ci.py version     # the pack's version, for a tag comparison
@@ -35,7 +35,6 @@ PACK = REPO / "pack"
 CACHE = REPO / ".ci"
 SOURCE = CACHE / "horizon"
 TARGET = CACHE / "target"
-BIN = CACHE / "bin" / "horizon-shader"
 
 # Horizon at the commit this pack is checked against. It must be a commit that serves this pack's
 # `api` line: the pack is 0.2 since 2.11.0 (main retired 0.1 on 2026-11-15, `f82620a`), so the pin
@@ -45,6 +44,10 @@ HORIZON_REPO = "horizon-rust/horizon"
 HORIZON_SHA = "413ef02fddfac06ece3d318e88f0764fbd7d268c"  # main, shader API 0.2
 HORIZON_CRATE = "horizon-shader-api"
 HORIZON_BIN = "horizon-shader"
+
+# The built tool is keyed by the pin: a cache from another pin (another API line) must never be
+# reused, which is what happened when main moved from 0.1 to 0.2 under a cached binary.
+BIN = CACHE / "bin" / HORIZON_SHA[:12] / HORIZON_BIN
 
 
 def version() -> str:
