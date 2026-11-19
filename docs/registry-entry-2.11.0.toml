@@ -15,12 +15,11 @@ categories = ["vanilla-like", "atmosphere", "shadows"]
 screenshots = [
     "screenshots/vanilla_horizon/1.jpg",
     "screenshots/vanilla_horizon/2.jpg",
-    "screenshots/vanilla_horizon/3.jpg",
+    "screenshots/vanilla_horizon/3.png",
     "screenshots/vanilla_horizon/4.jpg",
     "screenshots/vanilla_horizon/5.jpg",
     "screenshots/vanilla_horizon/6.jpg",
     "screenshots/vanilla_horizon/7.jpg",
-    "screenshots/vanilla_horizon/8.jpg",
 ]
 
 [[versions]]

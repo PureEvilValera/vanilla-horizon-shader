@@ -30,12 +30,11 @@ categories = ["vanilla-like", "atmosphere", "shadows"]
 screenshots = [
     "screenshots/vanilla_horizon/1.jpg",
     "screenshots/vanilla_horizon/2.jpg",
-    "screenshots/vanilla_horizon/3.jpg",
+    "screenshots/vanilla_horizon/3.png",
     "screenshots/vanilla_horizon/4.jpg",
     "screenshots/vanilla_horizon/5.jpg",
     "screenshots/vanilla_horizon/6.jpg",
     "screenshots/vanilla_horizon/7.jpg",
-    "screenshots/vanilla_horizon/8.jpg",
 ]
 
 [[versions]]
@@ -54,8 +53,10 @@ Ground mist for the dawn, the dusk and the night, with its own height and distan
 """
 ```
 
-`screenshots/vanilla_horizon/*` in `screenshots/registry/` of this repository, already re-encoded to
-JPEG under the 1 MiB limit.
+The seven pictures of the 2.10.2 submission stay as they are — they still exist in the registry
+(`1.jpg`, `2.jpg`, `3.png`, `4.jpg` … `7.jpg`), so the entry lists exactly those. Files of our own are
+only needed to *replace* a picture: `screenshots/registry/1..8.jpg` in this repository are already
+JPEG under the 1 MiB limit, and adding one means adding it to the same pull request.
 
 ## What the form asks for
 
@@ -73,7 +74,7 @@ JPEG under the 1 MiB limit.
 | Licence | `MIT` |
 | Categories | `vanilla-like`, `atmosphere`, `shadows` |
 | Icon | the existing `icons/vanilla_horizon.png` is reused (square, 233 KB) |
-| Screenshots | `screenshots/registry/1.jpg … 8.jpg` from this repository |
+| Screenshots | keep the seven already in the registry (`…/3.png`, not `.jpg`); our own are optional replacements |
 
 The file itself must already be downloadable from a release of our repository, because the registry
 stores a link, not the bytes in the PR:
