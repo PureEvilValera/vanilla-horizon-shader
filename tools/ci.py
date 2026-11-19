@@ -41,7 +41,10 @@ TARGET = CACHE / "target"
 # follows main. Bump it together with the manifest's `api`, never on its own: the tool is the
 # authority for that line.
 HORIZON_REPO = "horizon-rust/horizon"
-HORIZON_SHA = "413ef02fddfac06ece3d318e88f0764fbd7d268c"  # main, shader API 0.2
+# `HORIZON_SHA` in the environment wins: the workflows set it to Horizon's newest nightly, so the
+# checker follows the line the game serves without a commit here. The value below is the fallback
+# for a developer machine.
+HORIZON_SHA = os.environ.get("HORIZON_SHA") or "413ef02fddfac06ece3d318e88f0764fbd7d268c"
 HORIZON_CRATE = "horizon-shader-api"
 HORIZON_BIN = "horizon-shader"
 

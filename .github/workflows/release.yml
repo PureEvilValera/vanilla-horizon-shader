@@ -1,15 +1,16 @@
-# A release from a tag: Horizon's check, both packaged files, and the notes from docs/.
-# Tag v<version> must match `version` in pack/horizon-shaders.toml.
+# Publishes the manifest's version as a GitHub release: checks, packs, and attaches the `.hshader`
+# and the friend-ready zip. Runs on a `v*` tag, or straight from the Actions tab (Run workflow on
+# main) — in that case the tag `v<version>` is created at the commit the run checked out, so no
+# command line is needed and the tag can never disagree with the manifest.
+#
+# The checker comes from Horizon's newest nightly, like check.yml: Horizon's stable tags lag the
+# shader API line, and `tools/ci.py` builds it once into `.ci/bin/<sha>/`.
 name: release
 
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag to release (default: the pushed tag)"
-        required: false
 
 permissions:
   contents: write
@@ -24,20 +25,23 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+      - name: Horizon's newest nightly
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "HORIZON_SHA=$(gh api repos/horizon-rust/horizon/git/ref/tags/nightly -q .object.sha)" >> "$GITHUB_ENV"
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: .ci
-          # .ci/target is the build; the rest of .ci is fetched source and the built tool.
-          cache-directories: .ci/bin
       - name: The tag matches the pack's version
-        env:
-          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           version=$(python3 tools/ci.py version)
-          [ "v$version" = "$TAG" ] || { echo "tag $TAG is not v$version"; exit 1; }
+          tag="v$version"
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "$tag" ]; then
+            echo "tag $GITHUB_REF_NAME, manifest $version"; exit 1
+          fi
           echo "VERSION=$version" >> "$GITHUB_ENV"
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "TAG=$tag" >> "$GITHUB_ENV"
       - name: Package
         run: |
           python3 tools/ci.py package | tee package.json
@@ -55,11 +59,13 @@ jobs:
         run: |
           title="Vanilla Horizon $VERSION"
           notes="docs/release-notes-$VERSION.md"
+          # A missing tag is created at the commit this run checked out; an existing release gets its
+          # assets replaced, so re-running a release is safe.
           if [ -f "$notes" ]; then
-            gh release create "$TAG" "$FILE" "$ZIP" --title "$title" --verify-tag --notes-file "$notes" \
+            gh release create "$TAG" "$FILE" "$ZIP" --title "$title" --target "$GITHUB_SHA" --notes-file "$notes" \
               || gh release upload "$TAG" "$FILE" "$ZIP" --clobber
           else
-            gh release create "$TAG" "$FILE" "$ZIP" --title "$title" --verify-tag --generate-notes \
+            gh release create "$TAG" "$FILE" "$ZIP" --title "$title" --target "$GITHUB_SHA" --generate-notes \
               || gh release upload "$TAG" "$FILE" "$ZIP" --clobber
           fi
           echo "hshader sha256: $SHA256"
