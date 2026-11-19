@@ -111,12 +111,17 @@ def check() -> None:
 
 def package() -> dict[str, str]:
     """stdout: one JSON object. Everything else — the check's report, the packer's lines — to stderr."""
+    tool = ensure_tool()
     check()
+    # `pack.py` uses `horizon-shader` from PATH when it can find it. Without this the runner would
+    # fall back to a plain zip and produce a different file from the one the registry's packer makes.
+    env = {**os.environ, "PATH": str(Path(tool).parent) + os.pathsep + os.environ.get("PATH", "")}
     result = subprocess.run(
         [sys.executable, str(REPO / "tools" / "pack.py"), "--json", "--no-link"],
         capture_output=True,
         text=True,
         check=True,
+        env=env,
     )
     sys.stderr.write(result.stdout)
     data = json.loads(result.stdout.strip().splitlines()[-1])

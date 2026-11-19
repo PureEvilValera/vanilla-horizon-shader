@@ -82,6 +82,19 @@ light, `[tonemap]`, the game drawing it only with `HORIZON_HDR_FRAME=float`) is 
 - **Pages** group the options: Sky and clouds · Dawn · Dusk · Moon · Light and shadows · Block glow ·
   Water · Rain · Nature. Every option must be reachable and used, or `tools/check.py` complains.
 
+## Packaging pitfall (cost a broken release once)
+
+`tools/pack.py` uses `horizon-shader` from PATH when it finds one, and falls back to a plain zip
+otherwise. In CI the checker lives in `.ci/bin/<pin>/`, which is not on PATH by default, so the
+release once carried a zip-built file whose sha256 did not match the one we checked. `tools/ci.py`
+now prepends that directory to PATH for the call. A release's asset digest must equal
+`dist/vanilla_horizon-<version>.hshader`'s sha256 before the registry entry is updated.
+
+The registry's own pin is `.github/horizon-rev` in `horizon-rust/horizon-mods` (`0b14f8a` as of
+2026-11-19) and it accepts `[frame] fog`; the submit form's bundled checker is older and rejects it,
+so a valid submission can fail in the form and still pass the registry's CI. Open the PR by hand in
+that case, from the owner account — the archived id is checked against `owner_ids`.
+
 ## Conventions
 
 - An `[[options]]` entry must be an `override` of its type in some stage: bool, f32, `int` → i32,
