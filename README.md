@@ -48,7 +48,7 @@ earlier 0.1 file is kept here for old builds and for the record.
 
 | Your Horizon | Take |
 | --- | --- |
-| serves **0.2** — every build since 15.11.2026, and the launcher's own `--launch-api` | `dist/vanilla_horizon-2.11.0.hshader`, start the game with `HORIZON_HDR_FRAME=float` |
+| serves **0.2** — every build since 15.11.2026, and the launcher's own `--launch-api` | `dist/vanilla_horizon-2.11.1.hshader`, start the game with `HORIZON_HDR_FRAME=float` |
 | serves **0.1** — e.g. nightly 13.11.2026 (archived) | `dist/vanilla_horizon-2.10.2.hshader` |
 
 Both install the same way: Horizon → Options → Horizon Settings → Shader Packs → **Open Pack Folder**,
@@ -80,7 +80,7 @@ git push origin main v<version>
 ```
 
 The registry takes a pack version straight from a release asset, so the tag, the manifest's
-`version` and the file name all have to agree: `v2.11.0` → `vanilla_horizon-2.11.0.hshader`.
+`version` and the file name all have to agree: `v2.11.1` → `vanilla_horizon-2.11.1.hshader`.
 
 Both files come from the same packer the registry uses, so their SHA-256 match a local
 `python3 tools/pack.py`.

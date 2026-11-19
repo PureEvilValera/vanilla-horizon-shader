@@ -7,15 +7,15 @@ override bloom: f32 = 0.15;
 // server's view distance is often shorter than the render distance the shader knows). Distant
 // terrain just under the sky blends into the sky above it over a few pixels, whatever distance it
 // ends at; nearby trees and hills against the sky are left alone.
-override skyline: f32 = 0.5;
+override skyline: f32 = 0.0;
 // A layer of mist in the first blocks above the sea's level, thickest at the ground: its own amount
 // for the dawn and for the dusk, and how many blocks it climbs.
 override dawn_mist: f32 = 0.55;
 override dusk_mist: f32 = 0.0;
-override night_mist: f32 = 2.0;
+override night_mist: f32 = 1.2;
 // An extra amount for the deep of the night, on top of the night's own.
-override midnight_mist: f32 = 0.65;
-override mist_height: f32 = 3.5;
+override midnight_mist: f32 = 0.25;
+override mist_height: f32 = 2.5;
 // How far from the player, in chunks, the mist starts: 0 has it from the camera, 1 keeps the first
 // sixteen blocks clear, 3 the first forty-eight.
 override mist_start: f32 = 1.0;
@@ -28,16 +28,34 @@ fn skyline_at(uv: vec2<f32>, color: vec3<f32>) -> vec3<f32> {
     if depth == 0.0 {
         return color;
     }
-    // The far edge of the loaded terrain fades into vanilla's own fog colour, smoothly by distance.
-    // Two earlier versions sampled the picture above the pixel for the sky — the sun, the moon and
-    // the stars are in that picture, so their image was painted onto the far terrain (the sun and
-    // the moon came out doubled). The fog colour is the horizon's colour and has no sprites in it.
     let dist = length(view_position(uv, depth));
-    let far = smoothstep(frame.fog_render.x, frame.fog_render.y, dist);
+
+    // Two ramps, whichever is stronger. The first is the distance `frame.fog_render` reports — the
+    // distance this client asked for. The second finds where the terrain actually stops: on a server
+    // whose view distance is shorter than the client's, the chunks end well inside that distance, and
+    // a fog keyed to the client's number would sit beyond the edge and never be seen.
+    var far = smoothstep(frame.fog_render.x, frame.fog_render.y, dist);
+    let step = 2.0 * max(frame.resolution.y / 720.0, 1.0) / frame.resolution.y;
+    for (var i = 1; i <= 4; i++) {
+        let up = uv - vec2<f32>(0.0, f32(i) * step);
+        if up.y < 0.0 {
+            break;
+        }
+        if depth_at(up) == 0.0 {
+            // This pixel has the sky just above it: it is the top of the loaded terrain, whatever the
+            // distance says. Ramp over the four rows the search covers.
+            far = max(far, 1.0 - 0.2 * f32(i));
+            break;
+        }
+    }
     if far <= 0.0 {
         return color;
     }
-    return mix(color, frame.fog_color, far * clamp(skyline, 0.0, 1.0));
+    // Toward the sky's own colour as much as the fog's: at dusk and at night `fog_color` is much
+    // darker than the sky above the edge, and mixing only toward it darkened the last chunks instead
+    // of dissolving them.
+    let horizon = mix(frame.fog_color, frame.sky_color, 0.4);
+    return mix(color, horizon, far * clamp(skyline, 0.0, 1.0));
 }
 
 // The rays target is a quarter of the world's size and its march is per-pixel noise, so it is read

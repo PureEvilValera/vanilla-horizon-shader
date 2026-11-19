@@ -12,7 +12,7 @@ screenshots/vanilla_horizon/1.jpg … 7.jpg  # 7 pictures, 300–760 KB each, fi
 Nothing else: no source, no `.hshader` — the file is attached to a release of *our* repository and only
 its URL and SHA-256 are referenced.
 
-## The entry as it was, and as 2.11.0 makes it
+## The entry as it was, and as 2.11.1 makes it
 
 ```toml
 id = "vanilla_horizon"
@@ -38,11 +38,11 @@ screenshots = [
 ]
 
 [[versions]]
-version = "2.11.0"
+version = "2.11.1"
 published = "2026-11-19"
 game = "26.3"
-file = "vanilla_horizon-2.11.0.hshader"
-sha256 = "f734a1344f058ba54b4a790250d9d85c991c48f8d6a087a88d567180a13149ee"
+file = "vanilla_horizon-2.11.1.hshader"
+sha256 = "a502e6cf3584b732f7e49dec74300b5fcbe051596ee604d387abddce85c7b1e3"
 changelog = """
 Moved to shader API 0.2: linear light, [frame] fog = "pack", vanilla_fog(), the face's shade and
 ambient occlusion as fields of their own, and a [tonemap] stage with Tone curve and Exposure.
@@ -62,13 +62,13 @@ JPEG under the 1 MiB limit, and adding one means adding it to the same pull requ
 
 `https://playhorizon.dev/mods/submit` takes, for an existing project:
 
-| Field | Value for 2.11.0 |
+| Field | Value for 2.11.1 |
 | --- | --- |
 | Project | `vanilla_horizon` (existing, archived at 0.1 — this is the reactivation) |
-| Version | `2.11.0` |
+| Version | `2.11.1` |
 | Game | `26.3` |
-| File | `vanilla_horizon-2.11.0.hshader`, 30 963 bytes |
-| SHA-256 | `f734a1344f058ba54b4a790250d9d85c991c48f8d6a087a88d567180a13149ee` |
+| File | `vanilla_horizon-2.11.1.hshader`, 31 346 bytes |
+| SHA-256 | `a502e6cf3584b732f7e49dec74300b5fcbe051596ee604d387abddce85c7b1e3` |
 | Signed | no |
 | Source | `https://github.com/PureEvilValera/vanilla-horizon-shader` |
 | Licence | `MIT` |
@@ -80,7 +80,7 @@ The file itself must already be downloadable from a release of our repository, b
 stores a link, not the bytes in the PR:
 
 ```
-https://github.com/PureEvilValera/vanilla-horizon-shader/releases/download/v2.11.0/vanilla_horizon-2.11.0.hshader
+https://github.com/PureEvilValera/vanilla-horizon-shader/releases/download/v2.11.1/vanilla_horizon-2.11.1.hshader
 ```
 
 ## The archived-id gate

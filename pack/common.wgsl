@@ -26,15 +26,15 @@ fn shift_hue(c: vec3<f32>, t: f32) -> vec3<f32> {
 }
 
 // How much direct sunlight adds on top of vanilla's light at Sunlight 1.
-const SUN_ADD: f32 = 0.022;
+const SUN_ADD: f32 = 0.18;
 // The same for the moon. It matches the sun's share, so `Moonlight` 0.3 already gives a night you
 // can read the ground by, and its light is there the whole night, not only while it rises.
-const MOON_ADD: f32 = 0.022;
+const MOON_ADD: f32 = 0.10;
 // The most a shadow takes away from vanilla's sky light, so a shadow is shade and never night.
-const SHADE: f32 = 0.022;
+const SHADE: f32 = 0.30;
 // A low sun always gives a little of its own warm light: without it the dawn and the dusk would
 // stay exactly vanilla's and the shadows would have nothing to cut.
-const SUNSET_ADD: f32 = 0.0094;
+const SUNSET_ADD: f32 = 0.12;
 
 // --- The light of the hour ---------------------------------------------------------
 
@@ -45,7 +45,7 @@ override moon_tint: f32 = 0.0;
 override moon_glow: f32 = 0.2;
 
 // Wind: how hard the leaves and the blades move in a calm hour, in the rain and in a storm.
-override wind_calm: f32 = 0.2;
+override wind_calm: f32 = 0.45;
 override wind_rain: f32 = 1.9;
 override wind_thunder: f32 = 5.0;
 
@@ -66,7 +66,7 @@ override dusk_haze: f32 = 0.2;
 override dusk_warmth: f32 = 0.5;
 override dusk_orange: f32 = 2.0;
 override dusk_light: f32 = 0.3;
-override dusk_rays: f32 = 0.3;
+override dusk_rays: f32 = 0.2;
 override dusk_rays_color: f32 = 0.5;
 
 // How many cells hold a ring: 0 none, 1 the rain's own count, above it more.

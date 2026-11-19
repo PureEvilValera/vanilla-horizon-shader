@@ -9,7 +9,7 @@ request made by hand, entirely in the browser.
 Into a fork of `horizon-rust/horizon-mods`, one file added:
 
 ```
-mods/vanilla_horizon.toml      # from docs/registry-entry-2.11.0.toml of this repository
+mods/vanilla_horizon.toml      # from docs/registry-entry-2.11.1.toml of this repository
 ```
 
 Nothing else. `icons/vanilla_horizon.png` and `screenshots/vanilla_horizon/1..7` already exist in the
@@ -42,27 +42,27 @@ screenshots = [
 ]
 
 [[versions]]
-version = "2.11.0"
+version = "2.11.1"
 published = "2026-11-19"
 game = "26.3"
-file = "vanilla_horizon-2.11.0.hshader"
-sha256 = "f734a1344f058ba54b4a790250d9d85c991c48f8d6a087a88d567180a13149ee"
+file = "vanilla_horizon-2.11.1.hshader"
+sha256 = "a502e6cf3584b732f7e49dec74300b5fcbe051596ee604d387abddce85c7b1e3"
 changelog = "…"
 ```
 
 ## Steps, in the browser only
 
-1. **Check the release first.** `https://github.com/PureEvilValera/vanilla-horizon-shader/releases/tag/v2.11.0`
-   must carry `vanilla_horizon-2.11.0.hshader`, 30 963 bytes, digest
-   `sha256:f734a1344f058ba54b4a790250d9d85c991c48f8d6a087a88d567180a13149ee`. A different digest means
+1. **Check the release first.** `https://github.com/PureEvilValera/vanilla-horizon-shader/releases/tag/v2.11.1`
+   must carry `vanilla_horizon-2.11.1.hshader`, 31 346 bytes, digest
+   `sha256:a502e6cf3584b732f7e49dec74300b5fcbe051596ee604d387abddce85c7b1e3`. A different digest means
    the file was packaged by something other than `horizon-shader pack`; do not submit it.
 
 2. **Fork** `horizon-rust/horizon-mods` (Fork button). Work in the browser: in your fork open
    `mods/` → **Add file** → **Create new file** → name `vanilla_horizon.toml` → paste the entry →
-   **Commit changes** (choose “Create a new branch for this commit”, branch `add-vanilla-horizon-2.11.0`).
+   **Commit changes** (choose “Create a new branch for this commit”, branch `add-vanilla-horizon-2.11.1`).
 
 3. **Open the PR** from that branch into `horizon-rust/horizon-mods:main`. Title:
-   `Add vanilla_horizon 2.11.0 (reactivation, shader API 0.2)`. Body: what changed, the release URL,
+   `Add vanilla_horizon 2.11.1 (reactivation, shader API 0.2)`. Body: what changed, the release URL,
    and one line saying it is the archived project brought back on the 0.2 line.
 
 4. **Checks.** The registry's CI builds `horizon-shader` from its pinned revision
@@ -76,7 +76,30 @@ changelog = "…"
    id and do not remove the archived file.
 
 6. **After the merge**, the entry appears in `mods/vanilla_horizon.toml` and in the built
-   `index.json`; the launcher offers 2.11.0 to any Horizon that serves shader API 0.2.
+   `index.json`; the launcher offers 2.11.1 to any Horizon that serves shader API 0.2.
+
+## The file has to be staged, and only a maintainer can do it
+
+`scripts/fetch.sh` does not read the `source` repository: it looks for the package in the registry's
+own release `vanilla_horizon-2.11.1` or in the `staging` prerelease, as `<sha256>.hshader`. The form
+uploads it there; a hand-made pull request cannot, so the check stops with
+
+```
+no assets match the file pattern
+Error: vanilla_horizon 2.11.1: reviewed package is absent from its release and staging
+```
+
+A comment on the pull request asking for it, with the command a maintainer runs from a trusted
+checkout of `main`:
+
+```
+scripts/stage.sh <pr> <base sha> <head sha> \
+  https://github.com/PureEvilValera/vanilla-horizon-shader/releases/download/v2.11.1/vanilla_horizon-2.11.1.hshader
+```
+
+`<head sha>` is the reviewed head of the branch; `<base sha>` is `git merge-base origin/main <head>`.
+Once staged, the check has to run again — a new commit on the branch re-triggers it, since a
+non-maintainer cannot press “Re-run jobs”.
 
 ## If a check fails
 

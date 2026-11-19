@@ -6,28 +6,28 @@
 // [shadow] option: off means no shadow map and no shadow pass at all.
 override shadows: bool = true;
 // 0 sharp (one tap), 1 soft (four), 2 very soft (nine).
-override shadow_softness: u32 = 1u;
+override shadow_softness: u32 = 0u;
 // How dark a shadow is; above it the sun's own light in the shadow fades first.
-override shadow_strength: f32 = 1.0;
+override shadow_strength: f32 = 1.5;
 
 // [reflection] option: the world's mirror about the water plane is drawn while it is on.
 override water_reflections: bool = true;
 // How much of the mirror the water shows (0: none, 1: a perfect mirror at grazing angles).
 override reflection_strength: f32 = 1.0;
 // 0 keeps vanilla's see-throughness, 1 is as clear as the water goes.
-override water_transparency: f32 = 0.4;
+override water_transparency: f32 = 0.7;
 // How steep the ripples in the water's normals are (0: a flat top, vanilla's shape).
 override water_waves: f32 = 1.0;
 // The sun's or moon's glint on the water (vanilla has none).
 override sun_glint: f32 = 0.2;
 // How strongly the far water dissolves into the horizon: 0 leaves its edge sharp, 1 hides it.
-override far_water: f32 = 0.45;
+override far_water: f32 = 0.4;
 // How many blocks before the render distance that dissolve begins: a small number keeps it a thin
 // band at the end of the chunks, a large one lets the far half of a lake haze over.
-override far_water_start: f32 = 320.0;
+override far_water_start: f32 = 124.0;
 // How far the block light of `[[lights]]` shifts the light on the surfaces it reaches: brightness
 // stays vanilla's, only the hue moves.
-override block_light_warmth: f32 = 1.0;
+override block_light_warmth: f32 = 0.65;
 
 // How much of the world the rain leaves on: rings where the drops land, and how far the ground is
 // soaked through.
@@ -37,7 +37,7 @@ override wet_ground: f32 = 1.0;
 
 // How thick the air is by day, against vanilla's own fog: 1 is exactly vanilla, 0 no fog at all.
 // The dawn and the dusk do not use it — they keep the pack's own thickness.
-override day_fog: f32 = 0.35;
+override day_fog: f32 = 0.0;
 // How much of the fog stays where a face sees no sky: 0 clears the caves and the cellars.
 override cave_fog: f32 = 0.0;
 
@@ -100,7 +100,11 @@ fn air(color: vec3<f32>, position: vec3<f32>, open: f32) -> vec3<f32> {
     // Underground the render-distance fog is all there is, and it reads as a fog bank in a cave:
     // `Cave fog` takes it away where the face sees no sky.
     let underground = mix(clamp(cave_fog, 0.0, 1.0), 1.0, open);
-    let k = clamp(vanilla_fog(position) * density * underground, 0.0, 1.0);
+    let day = clamp(vanilla_fog(position) * density * underground, 0.0, 1.0);
+    // The edge of the render distance always dissolves, whatever `Day fog` says: the last chunks
+    // otherwise stand as a wall against the sky, which is exactly what the pack is asked to hide.
+    let edge = smoothstep(frame.fog_render.x, frame.fog_render.y, length(position));
+    let k = clamp(max(day, edge * 0.92), 0.0, 1.0);
     if k <= 0.0 {
         return color;
     }
@@ -266,7 +270,7 @@ fn material(input: MaterialInput) -> Surface {
     let warm_w = clamp(side_mix(dawn_warmth, dusk_warmth), 0.0, 1.0);
     // A low sun also fills the air with its own colour, so a face turned away from it is still lit
     // by that hour instead of dropping back to a cold daylight.
-    color += albedo * tint * vec3<f32>(1.0, 0.28, 0.08) * 0.03 * dusk * sky_share;
+    color += albedo * tint * vec3<f32>(1.0, 0.28, 0.08) * 0.10 * dusk * sky_share;
     let leaf = input.material == MAT_LEAVES;
     let plant = input.material == MAT_PLANT;
 
@@ -293,7 +297,7 @@ fn material(input: MaterialInput) -> Surface {
         // By day the sun shades; at night the same map holds the moon, so its light casts the
         // long falling shadows too — weaker, by whatever `Moonlight` asks for.
         let shade_gate = max(day, nightfall() * clamp(moon_strength, 0.0, 2.0) * 0.5);
-        color *= 1.0 - depth * shade_gate * open * (1.0 - shadow);
+        color *= clamp(1.0 - depth * shade_gate * open * (1.0 - shadow), 0.0, 1.0);
         // The direct light is the extra, so at Sunlight 0 the world keeps vanilla's brightness.
         // The faces the low sun reaches take its colour outright: this is a shift of hue, not of
         // brightness, so shadowed faces stay as they are and only lit ones turn orange.
